@@ -10,7 +10,6 @@
 	<img src="https://github.com/user-attachments/assets/1135a673-e19f-4a00-9edc-f4bfc760c45f" width="250"> <br>
 	<img src="https://github.com/user-attachments/assets/af7406b0-3911-489c-91e1-3dde79002790" width="300"> <br>
 	<img src="https://github.com/user-attachments/assets/7dddc6cc-a0aa-4946-9c49-c5bf6b48ceb1" width="200"> <br>
-	the beams in cs2 are unfortunately not as good as they were in csgo :(
 </details>
 
 <br>
@@ -18,10 +17,12 @@
 ## information:
 
 ### requirements
-- [MetaMod](https://cs2.poggu.me/metamod/installation)
+- [MetaMod](https://github.com/alliedmodders/metamod-source)
 - [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp)
 - [Cruze03/Clientprefs](https://github.com/Cruze03/Clientprefs)
-
+- [Interesting-exe/WASDMenuAPI](https://github.com/Interesting-exe/WASDMenuAPI) (optional)
+- [T3Marius/CS2ScreenMenuAPI](https://github.com/T3Marius/CS2ScreenMenuAPI) (optional)
+- 
 <br>
 
 > [!NOTE]
@@ -62,8 +63,7 @@
       "Width": 1,
       "Lifetime": 1
     }
-  },
-  "ConfigVersion": 1
+  }
 }
 ```
 
