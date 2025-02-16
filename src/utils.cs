@@ -3,23 +3,18 @@ using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Drawing;
 
-namespace Trails;
-
-public partial class Plugin : BasePlugin, IPluginConfig<Config>
+public static class Utils
 {
-    public void OnServerPrecacheResources(ResourceManifest manifest)
-    {
-        foreach (KeyValuePair<string, Trail> trail in Config.Trails)
-            manifest.AddResource(trail.Value.File);
-    }
+    static Plugin Instance = Plugin.Instance;
+    static Config Config = Instance.Config;
 
-    public void PrintToChat(CCSPlayerController player, string Message)
+    public static void PrintToChat(CCSPlayerController player, string Message)
     {
         if (Config.ChatMessages)
             player.PrintToChat(Config.Prefix + Message);
     }
 
-    public bool HasPermission(CCSPlayerController player)
+    public static bool HasPermission(CCSPlayerController player)
     {
         return string.IsNullOrEmpty(Config.Permission) || AdminManager.PlayerHasPermissions(player, Config.Permission);
     }
@@ -43,8 +38,8 @@ public partial class Plugin : BasePlugin, IPluginConfig<Config>
         return vector.LengthSqr() == 0;
     }
 
-    private int colorIndex = 0;
-    Color[] rainbowColors = {
+    public static int colorIndex = 0;
+    public static Color[] rainbowColors = {
         Color.FromArgb(255, 255, 0, 0),
         Color.FromArgb(255, 255, 25, 0),
         Color.FromArgb(255, 255, 50, 0),

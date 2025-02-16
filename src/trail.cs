@@ -3,38 +3,10 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Drawing;
 
-namespace Trails;
-
-public partial class Plugin : BasePlugin, IPluginConfig<Config>
+public partial class Plugin
 {
-    public int Tick { get; set; } = 0;
     static readonly Vector[] TrailLastOrigin = new Vector[64];
     static readonly Vector[] TrailEndOrigin = new Vector[64];
-
-    public void OnTick()
-    {
-        Tick++;
-
-        if (Tick < Config.TicksForUpdate)
-            return;
-
-        Tick = 0;
-
-        foreach (CCSPlayerController player in Utilities.GetPlayers().Where(p => !p.IsBot))
-        {
-            if (!player.PawnIsAlive || !playerCookies.ContainsKey(player) || !HasPermission(player))
-                continue;
-
-            var absOrgin = player.PlayerPawn.Value!.AbsOrigin!;
-
-            if (VecCalculateDistance(TrailLastOrigin[player.Slot], absOrgin) <= 5.0f)
-                continue;
-
-            VecCopy(absOrgin, TrailLastOrigin[player.Slot]);
-
-            CreateTrail(player, absOrgin);
-        }
-    }
 
     public void CreateTrail(CCSPlayerController player, Vector absOrigin)
     {
@@ -83,8 +55,8 @@ public partial class Plugin : BasePlugin, IPluginConfig<Config>
         Color color = Color.FromArgb(255, 255, 255, 255);
         if (string.IsNullOrEmpty(colorValue) || colorValue == "rainbow")
         {
-            color = rainbowColors[colorIndex];
-            colorIndex = (colorIndex + 1) % rainbowColors.Length;
+            color = Utils.rainbowColors[Utils.colorIndex];
+            Utils.colorIndex = (Utils.colorIndex + 1) % Utils.rainbowColors.Length;
         }
         else
         {
@@ -97,9 +69,9 @@ public partial class Plugin : BasePlugin, IPluginConfig<Config>
             color = Color.FromArgb(255, r, g, b);
         }
 
-        if (VecIsZero(TrailEndOrigin[player.Slot]))
+        if (Utils.VecIsZero(TrailEndOrigin[player.Slot]))
         {
-            VecCopy(absOrigin, TrailEndOrigin[player.Slot]);
+            Utils.VecCopy(absOrigin, TrailEndOrigin[player.Slot]);
             return;
         }
 
@@ -107,13 +79,13 @@ public partial class Plugin : BasePlugin, IPluginConfig<Config>
 
         beam.Width = widthValue;
         beam.Render = color;
-        beam.SpriteName = trailData.File; // doesnt work :(
-        beam.SetModel(trailData.File); // how to fix? :(
+        //beam.SpriteName = trailData.File; // doesnt work :(
+        //beam.SetModel(trailData.File); // how to fix? :(
 
         beam.Teleport(absOrigin, new QAngle(), new Vector());
 
-        VecCopy(TrailEndOrigin[player.Slot], beam.EndPos);
-        VecCopy(absOrigin, TrailEndOrigin[player.Slot]);
+        Utils.VecCopy(TrailEndOrigin[player.Slot], beam.EndPos);
+        Utils.VecCopy(absOrigin, TrailEndOrigin[player.Slot]);
 
         Utilities.SetStateChanged(beam, "CBeam", "m_vecEndPos");
 

@@ -1,229 +1,73 @@
-﻿using CounterStrikeSharp.API;
+﻿using Clientprefs.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Menu;
-using static CounterStrikeSharp.API.Core.Listeners;
-using static Trails.Plugin;
+using Microsoft.Extensions.Localization;
 
-namespace Trails;
-
-public static class Menu
+public static partial class Menu
 {
-    public static readonly Dictionary<int, WasdMenuPlayer> WasdPlayers = new();
-
-    public static void Load(bool hotReload)
-    {
-        _.RegisterListener<OnTick>(OnTick);
-
-        _.RegisterEventHandler<EventPlayerActivate>((@event, info) =>
-        {
-            CCSPlayerController? player = @event.Userid;
-
-            if (player == null || !player.IsValid || player.IsBot)
-                return HookResult.Continue;
-
-            WasdPlayers[player.Slot] = new WasdMenuPlayer
-            {
-                player = player,
-                Buttons = 0
-            };
-
-            return HookResult.Continue;
-        });
-
-        _.RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
-        {
-            CCSPlayerController? player = @event.Userid;
-
-            if (player == null || !player.IsValid || player.IsBot)
-                return HookResult.Continue;
-
-            WasdPlayers.Remove(player.Slot);
-
-            return HookResult.Continue;
-        });
-
-        if (hotReload)
-        {
-            foreach (CCSPlayerController player in Utilities.GetPlayers())
-            {
-                if (player.IsBot)
-                    continue;
-
-                WasdPlayers[player.Slot] = new WasdMenuPlayer
-                {
-                    player = player,
-                    Buttons = player.Buttons
-                };
-            }
-        }
-    }
-
-    public static void Unload()
-    {
-        _.RemoveListener<OnTick>(OnTick);
-
-        WasdPlayers.Clear();
-    }
-
-    public static void OnTick()
-    {
-        foreach (WasdMenuPlayer? player in WasdPlayers.Values.Where(p => p.MainMenu != null))
-        {
-            if ((player.Buttons & PlayerButtons.Forward) == 0 && (player.player.Buttons & PlayerButtons.Forward) != 0)
-                player.ScrollUp();
-
-            else if ((player.Buttons & PlayerButtons.Back) == 0 && (player.player.Buttons & PlayerButtons.Back) != 0)
-                player.ScrollDown();
-
-            else if ((player.Buttons & PlayerButtons.Moveright) == 0 && (player.player.Buttons & PlayerButtons.Moveright) != 0)
-                player.Choose();
-
-            else if ((player.Buttons & PlayerButtons.Moveleft) == 0 && (player.player.Buttons & PlayerButtons.Moveleft) != 0)
-                player.CloseSubMenu();
-
-            if (((long)player.player.Buttons & 8589934592) == 8589934592)
-                player.OpenMainMenu(null);
-
-            player.Buttons = player.player.Buttons;
-
-            if (player.CenterHtml != "")
-            {
-                Server.NextFrame(() =>
-                    player.player.PrintToCenterHtml(player.CenterHtml)
-                );
-            }
-        }
-    }
-
+    static Plugin Instance = Plugin.Instance;
+    static Config Config = Instance.Config;
+    static IStringLocalizer Localizer = Instance.Localizer;
+    static int TrailCookie = Instance.TrailCookie;
+    static Dictionary<CCSPlayerController, string> playerCookies = Instance.playerCookies;
+    static IClientprefsApi? ClientprefsApi = Instance.ClientprefsApi;
 
     [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
-    public static void Command_OpenMenus(CCSPlayerController player, CommandInfo info)
+    public static void Open(CCSPlayerController? player, CommandInfo info)
     {
-        if (!_.HasPermission(player))
+        if (player == null) return;
+
+        if (!Utils.HasPermission(player))
         {
-            _.PrintToChat(player, _.Localizer["No Permission"]);
+            Utils.PrintToChat(player, Localizer["No Permission"]);
             return;
         }
 
-        MenuManager.CloseActiveMenu(player);
-        WasdManager.CloseMenu(player);
-
-        switch (_.Config.MenuType.ToLower())
+        switch (Config.MenuType.ToLower())
         {
             case "chat":
             case "text":
-                Open_Chat(player);
+                Chat.Open(player);
                 break;
             case "html":
             case "center":
             case "centerhtml":
             case "hud":
-                Open_HTML(player);
+                HTML.Open(player);
                 break;
             case "wasd":
             case "wasdmenu":
-                Open_WASD(player);
+                WASD.Open(player);
+                break;
+            case "screen":
+            case "screenmenu":
+                Screen.Open(player);
                 break;
             default:
-                Open_HTML(player);
+                HTML.Open(player);
                 break;
         }
     }
 
-    public static void Open_Chat(CCSPlayerController player)
+    public static void SelectNone(CCSPlayerController player)
     {
-        ChatMenu menu = new(_.Localizer["Menu Title"]);
+        if (ClientprefsApi == null || TrailCookie == -1)
+            return;
 
-        menu.AddMenuOption(_.Localizer["Menu NoTrail"], (player, option) => {
+        ClientprefsApi.SetPlayerCookie(player, TrailCookie, "none");
+        playerCookies[player] = "none";
 
-            if (_.ClientprefsApi == null || _.TrailCookie == -1)
-                return;
-
-            _.ClientprefsApi.SetPlayerCookie(player, _.TrailCookie, "none");
-            _.playerCookies[player] = "none";
-
-            _.PrintToChat(player, _.Localizer["Trail Remove"]);
-        });
-
-        foreach (KeyValuePair<string, Trail> trail in _.Config.Trails)
-        {
-            menu.AddMenuOption(trail.Value.Name, (player, option) => {
-
-                if (_.ClientprefsApi == null || _.TrailCookie == -1)
-                    return;
-
-                _.ClientprefsApi.SetPlayerCookie(player, _.TrailCookie, trail.Key);
-                _.playerCookies[player] = trail.Key;
-
-                _.PrintToChat(player, _.Localizer["Trail Select", trail.Value.Name]);
-            });
-        }
-
-        MenuManager.OpenChatMenu(player, menu);
+        Utils.PrintToChat(player, Localizer["Trail Remove"]);
     }
 
-    public static void Open_HTML(CCSPlayerController player)
+    public static void SelectTrail(CCSPlayerController player, KeyValuePair<string, Trail> trail)
     {
-        CenterHtmlMenu menu = new(_.Localizer["Menu Title"], _);
+        if (ClientprefsApi == null || TrailCookie == -1)
+            return;
 
-        menu.AddMenuOption(_.Localizer["Menu NoTrail"], (player, option) => {
+        ClientprefsApi.SetPlayerCookie(player, TrailCookie, trail.Key);
+        playerCookies[player] = trail.Key;
 
-            if (_.ClientprefsApi == null || _.TrailCookie == -1)
-                return;
-
-            _.ClientprefsApi.SetPlayerCookie(player, _.TrailCookie, "none");
-            _.playerCookies[player] = "none";
-
-            _.PrintToChat(player, _.Localizer["Trail Remove"]);
-        });
-
-        foreach (KeyValuePair<string, Trail> trail in _.Config.Trails)
-        {
-            menu.AddMenuOption(trail.Value.Name, (player, option) => {
-
-                if (_.ClientprefsApi == null || _.TrailCookie == -1)
-                    return;
-
-                _.ClientprefsApi.SetPlayerCookie(player, _.TrailCookie, trail.Key);
-                _.playerCookies[player] = trail.Key;
-
-                _.PrintToChat(player, _.Localizer["Trail Select", trail.Value.Name]);
-            });
-        }
-
-        MenuManager.OpenCenterHtmlMenu(_, player, menu);
-    }
-
-    public static void Open_WASD(CCSPlayerController player)
-    {
-        IWasdMenu menu = WasdManager.CreateMenu(_.Localizer["Menu Title"]);
-
-        menu.Add(_.Localizer["Menu NoTrail"], (player, option) => {
-
-            if (_.ClientprefsApi == null || _.TrailCookie == -1)
-                return;
-
-            _.ClientprefsApi.SetPlayerCookie(player, _.TrailCookie, "none");
-            _.playerCookies[player] = "none";
-
-            _.PrintToChat(player, _.Localizer["Trail Remove"]);
-        });
-
-        foreach (KeyValuePair<string, Trail> trail in _.Config.Trails)
-        {
-            menu.Add(trail.Value.Name, (player, option) => {
-
-                if (_.ClientprefsApi == null || _.TrailCookie == -1)
-                    return;
-
-                _.ClientprefsApi.SetPlayerCookie(player, _.TrailCookie, trail.Key);
-                _.playerCookies[player] = trail.Key;
-
-                _.PrintToChat(player, _.Localizer["Trail Select", trail.Value.Name]);
-            });
-        }
-
-        WasdManager.OpenMainMenu(player, menu);
+        Utils.PrintToChat(player, Localizer["Trail Select", trail.Value.Name]);
     }
 }
