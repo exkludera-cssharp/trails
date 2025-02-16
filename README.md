@@ -22,7 +22,7 @@
 - [Cruze03/Clientprefs](https://github.com/Cruze03/Clientprefs)
 - [Interesting-exe/WASDMenuAPI](https://github.com/Interesting-exe/WASDMenuAPI) (optional)
 - [T3Marius/CS2ScreenMenuAPI](https://github.com/T3Marius/CS2ScreenMenuAPI) (optional)
-- 
+
 <br>
 
 > [!NOTE]
