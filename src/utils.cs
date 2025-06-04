@@ -16,7 +16,17 @@ public static class Utils
 
     public static bool HasPermission(CCSPlayerController player)
     {
-        return string.IsNullOrEmpty(Config.Permission) || AdminManager.PlayerHasPermissions(player, Config.Permission);
+        if (Config.Permission.Count == 0)
+            return true;
+
+        foreach (string perm in Config.Permission)
+        {
+            if (perm.StartsWith("@") && AdminManager.PlayerHasPermissions(player, perm))
+                return true;
+            if (perm.StartsWith("#") && AdminManager.PlayerInGroup(player, perm))
+                return true;
+        }
+        return false;
     }
 
     public static float VecCalculateDistance(Vector vector1, Vector vector2)

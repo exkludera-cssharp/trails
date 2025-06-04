@@ -4,17 +4,10 @@ using CounterStrikeSharp.API.Core.Translations;
 public partial class Plugin : BasePlugin, IPluginConfig<Config>
 {
     public override string ModuleName => "Trails";
-    public override string ModuleVersion => "1.0.7";
+    public override string ModuleVersion => "1.0.8";
     public override string ModuleAuthor => "exkludera";
 
     public static Plugin Instance { get; set; } = new();
-
-    public Config Config { get; set; } = new Config();
-    public void OnConfigParsed(Config config)
-    {
-        Config = config;
-        Config.Prefix = StringExtensions.ReplaceColorTags(config.Prefix);
-    }
 
     public override void Load(bool hotReload)
     {
@@ -22,7 +15,7 @@ public partial class Plugin : BasePlugin, IPluginConfig<Config>
 
         RegisterEvents();
 
-        foreach (var command in Config.MenuCommands.Split(','))
+        foreach (var command in Config.MenuCommands)
             AddCommand($"css_{command}", "", Menu.Open);
 
         for (int i = 0; i < 64; i++)
@@ -36,7 +29,7 @@ public partial class Plugin : BasePlugin, IPluginConfig<Config>
     {
         UnregisterEvents();
 
-        foreach (var command in Config.MenuCommands.Split(','))
+        foreach (var command in Config.MenuCommands)
             RemoveCommand($"css_{command}", Menu.Open);
 
         UnloadClientprefs();
@@ -47,8 +40,13 @@ public partial class Plugin : BasePlugin, IPluginConfig<Config>
         LoadClientprefs();
 
         if (hotReload)
-        {
             ReloadClientprefs();
-        }
+    }
+
+    public Config Config { get; set; } = new Config();
+    public void OnConfigParsed(Config config)
+    {
+        Config = config;
+        Config.Prefix = StringExtensions.ReplaceColorTags(config.Prefix);
     }
 }

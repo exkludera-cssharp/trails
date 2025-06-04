@@ -1,4 +1,5 @@
 # cs2-trails
+
 **a plugin that allows players to use custom trails**
 
 <br>
@@ -17,11 +18,11 @@
 ## information:
 
 ### requirements
+
 - [MetaMod](https://github.com/alliedmodders/metamod-source)
 - [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp)
-- [Cruze03/Clientprefs](https://github.com/Cruze03/Clientprefs)
-- [Interesting-exe/WASDMenuAPI](https://github.com/Interesting-exe/WASDMenuAPI) (optional)
-- [T3Marius/CS2ScreenMenuAPI](https://github.com/T3Marius/CS2ScreenMenuAPI) (optional)
+- [Clientprefs](https://github.com/Cruze03/Clientprefs)
+- [CS2MenuManager](https://github.com/schwarper/CS2MenuManager)
 
 <br>
 
@@ -33,11 +34,12 @@
 <br>
 
 ## example config
+
 ```json
 {
   "Prefix": "{red}[{orange}T{yellow}r{green}a{lightblue}i{darkblue}l{purple}s{red}]",
-  "Permission": "@css/reservation",
-  "MenuCommands": "trails,trail",
+  "Permission": ["@css/reservation", "#css/vip"],
+  "MenuCommands": ["trails", "trail"],
   "MenuType": "html",
   "ChatMessages": true,
   "TicksForUpdate": 1,

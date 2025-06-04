@@ -1,6 +1,8 @@
 ﻿using Clientprefs.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
+using CS2MenuManager.API.Class;
+using CS2MenuManager.API.Interface;
 using Microsoft.Extensions.Localization;
 
 public static partial class Menu
@@ -23,30 +25,22 @@ public static partial class Menu
             return;
         }
 
-        switch (Config.MenuType.ToLower())
+        IMenu Menu = MenuManager.MenuByType(Config.MenuType, Localizer["Menu Title"], Instance);
+
+        Menu.AddItem(Localizer["Menu NoTrail"], (player, option) =>
         {
-            case "chat":
-            case "text":
-                Chat.Open(player);
-                break;
-            case "html":
-            case "center":
-            case "centerhtml":
-            case "hud":
-                HTML.Open(player);
-                break;
-            case "wasd":
-            case "wasdmenu":
-                WASD.Open(player);
-                break;
-            case "screen":
-            case "screenmenu":
-                Screen.Open(player);
-                break;
-            default:
-                HTML.Open(player);
-                break;
+            SelectNone(player);
+        });
+
+        foreach (KeyValuePair<string, Trail> trail in Config.Trails)
+        {
+            Menu.AddItem(trail.Value.Name, (player, option) =>
+            {
+                SelectTrail(player, trail);
+            });
         }
+
+        Menu.Display(player, 0);
     }
 
     public static void SelectNone(CCSPlayerController player)

@@ -29,14 +29,13 @@ public partial class Plugin
     {
         float lifetimeValue = trailData.Lifetime > 0 ? trailData.Lifetime : 1.0f;
      
-        var particle = Utilities.CreateEntityByName<CParticleSystem>("info_particle_system")!;
+        var particle = Utilities.CreateEntityByName<CEnvParticleGlow>("env_particle_glow")!;
 
         particle.EffectName = trailData.File;
+        particle.StartActive = true;
+        particle.Teleport(absOrigin);
         particle.DispatchSpawn();
-        particle.AcceptInput("Start");
         particle.AcceptInput("FollowEntity", player.PlayerPawn?.Value!, player.PlayerPawn?.Value!, "!activator");
-
-        particle.Teleport(absOrigin, new QAngle(), new Vector());
 
         AddTimer(lifetimeValue, () =>
         {
@@ -75,14 +74,13 @@ public partial class Plugin
             return;
         }
 
-        var beam = Utilities.CreateEntityByName<CEnvBeam>("env_beam")!;
+        var beam = Utilities.CreateEntityByName<CBeam>("env_beam")!;
 
         beam.Width = widthValue;
         beam.Render = color;
-        //beam.SpriteName = trailData.File; // doesnt work :(
-        //beam.SetModel(trailData.File); // how to fix? :(
-
-        beam.Teleport(absOrigin, new QAngle(), new Vector());
+        beam.SetModel(fileValue);
+        beam.Teleport(absOrigin);
+        beam.DispatchSpawn();
 
         Utils.VecCopy(TrailEndOrigin[player.Slot], beam.EndPos);
         Utils.VecCopy(absOrigin, TrailEndOrigin[player.Slot]);
