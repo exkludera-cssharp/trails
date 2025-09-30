@@ -40,7 +40,7 @@
   "Prefix": "{red}[{orange}T{yellow}r{green}a{lightblue}i{darkblue}l{purple}s{red}]",
   "Permission": ["@css/reservation", "#css/vip"],
   "MenuCommands": ["trails", "trail"],
-  "MenuType": "html",
+  "MenuType": "CenterHtmlMenu",
   "ChatMessages": true,
   "TicksForUpdate": 1,
   "Trails": {
