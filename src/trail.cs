@@ -35,7 +35,7 @@ public partial class Plugin
         particle.StartActive = true;
         particle.Teleport(absOrigin);
         particle.DispatchSpawn();
-        particle.AcceptInput("FollowEntity", player.PlayerPawn?.Value!, player.PlayerPawn?.Value!, "!activator");
+        particle.AcceptInput("FollowEntity", player.PlayerPawn?.Value!, particle, "!activator");
 
         AddTimer(lifetimeValue, () =>
         {
