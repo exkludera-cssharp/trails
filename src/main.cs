@@ -4,7 +4,7 @@ using CounterStrikeSharp.API.Core.Translations;
 public partial class Plugin : BasePlugin, IPluginConfig<Config>
 {
     public override string ModuleName => "Trails";
-    public override string ModuleVersion => "1.0.9";
+    public override string ModuleVersion => "1.1.0";
     public override string ModuleAuthor => "exkludera";
 
     public static Plugin Instance { get; set; } = new();
@@ -17,6 +17,9 @@ public partial class Plugin : BasePlugin, IPluginConfig<Config>
 
         foreach (var command in Config.MenuCommands)
             AddCommand($"css_{command}", "", Menu.Open);
+
+        foreach (var command in Config.HideTrailsCommands)
+            AddCommand($"css_{command}", "", Command_HideTrails);
 
         for (int i = 0; i < 64; i++)
         {
@@ -31,6 +34,9 @@ public partial class Plugin : BasePlugin, IPluginConfig<Config>
 
         foreach (var command in Config.MenuCommands)
             RemoveCommand($"css_{command}", Menu.Open);
+
+        foreach (var command in Config.HideTrailsCommands)
+            RemoveCommand($"css_{command}", Command_HideTrails);
 
         UnloadClientprefs();
     }

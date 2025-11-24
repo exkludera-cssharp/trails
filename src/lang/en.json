@@ -1,9 +1,14 @@
 {
-  "Menu Title": "Select Trail",
-  "Menu NoTrail": "None",
+  "Menu Title": "Trails Menu",
+  "Menu HideTrails": "Hide Trails",
+  "Menu ShowTrails": "Show Trails",
+  "Menu NoTrail": "Remove Trail",
 
   "No Permission": "{red}You don't have permission to use this command.",
 
   "Trail Select": "{green}Selected: {grey}{0}",
-  "Trail Remove": "{red}Removed your trail"
+  "Trail Remove": "{red}Removed your trail",
+
+  "Trails Hidden": "{red}Trails are now hidden",
+  "Trails Shown": "{green}Trails are now shown"
 }

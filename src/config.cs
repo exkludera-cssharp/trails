@@ -14,6 +14,7 @@ public class Config : BasePluginConfig
     public string Prefix { get; set; } = "{red}[{orange}T{yellow}r{green}a{lightblue}i{darkblue}l{purple}s{red}]";
     public List<string> Permission { get; set; } = ["@css/reservation", "#css/vip"];
     public List<string> MenuCommands { get; set; } = ["trails", "trail"];
+    public List<string> HideTrailsCommands { get; set; } = ["hidetrails", "hidetrail"];
     public string MenuType { get; set; } = "CenterHtmlMenu";
     public bool ChatMessages { get; set; } = true;
     public int TicksForUpdate { get; set; } = 1;

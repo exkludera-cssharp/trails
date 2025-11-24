@@ -5,8 +5,8 @@ using System.Drawing;
 
 public static class Utils
 {
-    static Plugin Instance = Plugin.Instance;
-    static Config Config = Instance.Config;
+    private static Plugin Instance = Plugin.Instance;
+    private static Config Config = Instance.Config;
 
     public static void PrintToChat(CCSPlayerController player, string Message)
     {
@@ -48,70 +48,52 @@ public static class Utils
         return vector.LengthSqr() == 0;
     }
 
-    public static int colorIndex = 0;
-    public static Color[] rainbowColors = {
-        Color.FromArgb(255, 255, 0, 0),
-        Color.FromArgb(255, 255, 25, 0),
-        Color.FromArgb(255, 255, 50, 0),
-        Color.FromArgb(255, 255, 75, 0),
-        Color.FromArgb(255, 255, 100, 0),
-        Color.FromArgb(255, 255, 125, 0),
-        Color.FromArgb(255, 255, 150, 0),
-        Color.FromArgb(255, 255, 175, 0),
-        Color.FromArgb(255, 255, 200, 0),
-        Color.FromArgb(255, 255, 225, 0),
-        Color.FromArgb(255, 255, 250, 0),
-        Color.FromArgb(255, 255, 255, 0),
-        Color.FromArgb(255, 230, 255, 0),
-        Color.FromArgb(255, 205, 255, 0),
-        Color.FromArgb(255, 180, 255, 0),
-        Color.FromArgb(255, 155, 255, 0),
-        Color.FromArgb(255, 130, 255, 0),
-        Color.FromArgb(255, 105, 255, 0),
-        Color.FromArgb(255, 80, 255, 0),
-        Color.FromArgb(255, 55, 255, 0),
-        Color.FromArgb(255, 30, 255, 0),
-        Color.FromArgb(255, 0, 255, 0),
-        Color.FromArgb(255, 0, 255, 25),
-        Color.FromArgb(255, 0, 255, 50),
-        Color.FromArgb(255, 0, 255, 75),
-        Color.FromArgb(255, 0, 255, 100),
-        Color.FromArgb(255, 0, 255, 125),
-        Color.FromArgb(255, 0, 255, 150),
-        Color.FromArgb(255, 0, 255, 175),
-        Color.FromArgb(255, 0, 255, 200),
-        Color.FromArgb(255, 0, 255, 225),
-        Color.FromArgb(255, 0, 255, 250),
-        Color.FromArgb(255, 0, 255, 255),
-        Color.FromArgb(255, 0, 230, 255),
-        Color.FromArgb(255, 0, 205, 255),
-        Color.FromArgb(255, 0, 180, 255),
-        Color.FromArgb(255, 0, 155, 255),
-        Color.FromArgb(255, 0, 130, 255),
-        Color.FromArgb(255, 0, 105, 255),
-        Color.FromArgb(255, 0, 80, 255),
-        Color.FromArgb(255, 0, 55, 255),
-        Color.FromArgb(255, 0, 30, 255),
-        Color.FromArgb(255, 0, 0, 255),
-        Color.FromArgb(255, 25, 0, 255),
-        Color.FromArgb(255, 50, 0, 255),
-        Color.FromArgb(255, 75, 0, 255),
-        Color.FromArgb(255, 100, 0, 255),
-        Color.FromArgb(255, 125, 0, 255),
-        Color.FromArgb(255, 150, 0, 255),
-        Color.FromArgb(255, 175, 0, 255),
-        Color.FromArgb(255, 200, 0, 255),
-        Color.FromArgb(255, 225, 0, 255),
-        Color.FromArgb(255, 250, 0, 255),
-        Color.FromArgb(255, 255, 0, 255),
-        Color.FromArgb(255, 255, 0, 230),
-        Color.FromArgb(255, 255, 0, 205),
-        Color.FromArgb(255, 255, 0, 180),
-        Color.FromArgb(255, 255, 0, 155),
-        Color.FromArgb(255, 255, 0, 130),
-        Color.FromArgb(255, 255, 0, 105),
-        Color.FromArgb(255, 255, 0, 80),
-        Color.FromArgb(255, 255, 0, 55),
-        Color.FromArgb(255, 255, 0, 30)
-    };
+    private static int colorIndex = 0;
+    private static readonly Color[] RainbowColors = GenerateSmoothRainbow(64);
+    private static Color[] GenerateSmoothRainbow(int steps)
+    {
+        var colors = new Color[steps];
+        for (int i = 0; i < steps; i++)
+        {
+            float hue = (float)i / steps;
+            colors[i] = HslToColor(hue, 1.0f, 0.5f);
+        }
+        return colors;
+    }
+    public static Color GetNextRainbowColor()
+    {
+        var color = RainbowColors[colorIndex];
+        colorIndex = (colorIndex + 1) % RainbowColors.Length;
+        return color;
+    }
+
+    private static Color HslToColor(float h, float s, float l)
+    {
+        float r, g, b;
+
+        if (s == 0f)
+        {
+            r = g = b = l;
+        }
+        else
+        {
+            float q = l < 0.5f ? l * (1 + s) : l + s - l * s;
+            float p = 2 * l - q;
+            r = HueToRgb(p, q, h + 1f / 3f);
+            g = HueToRgb(p, q, h);
+            b = HueToRgb(p, q, h - 1f / 3f);
+        }
+
+        return Color.FromArgb(255, (int)(r * 255), (int)(g * 255), (int)(b * 255));
+    }
+
+    private static float HueToRgb(float p, float q, float t)
+    {
+        if (t < 0f) t += 1f;
+        if (t > 1f) t -= 1f;
+        if (t < 1f / 6f) return p + (q - p) * 6f * t;
+        if (t < 1f / 2f) return q;
+        if (t < 2f / 3f) return p + (q - p) * (2f / 3f - t) * 6f;
+        return p;
+    }
 }

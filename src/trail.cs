@@ -1,12 +1,15 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Drawing;
 
 public partial class Plugin
 {
-    static readonly Vector[] TrailLastOrigin = new Vector[64];
-    static readonly Vector[] TrailEndOrigin = new Vector[64];
+    private static readonly Vector[] TrailLastOrigin = new Vector[64];
+    private static readonly Vector[] TrailEndOrigin = new Vector[64];
+    public static HashSet<CCSPlayerController> HideTrails = new();
+    public static readonly Dictionary<CEntityInstance, CCSPlayerController> TrailsList = new();
 
     public void CreateTrail(CCSPlayerController player, Vector absOrigin)
     {
@@ -28,7 +31,7 @@ public partial class Plugin
     public void CreateParticle(CCSPlayerController player, Vector absOrigin, Trail trailData)
     {
         float lifetimeValue = trailData.Lifetime > 0 ? trailData.Lifetime : 1.0f;
-     
+
         var particle = Utilities.CreateEntityByName<CEnvParticleGlow>("env_particle_glow")!;
 
         particle.EffectName = trailData.File;
@@ -36,6 +39,8 @@ public partial class Plugin
         particle.Teleport(absOrigin);
         particle.DispatchSpawn();
         particle.AcceptInput("FollowEntity", player.PlayerPawn?.Value!, particle, "!activator");
+
+        TrailsList[particle] = player;
 
         AddTimer(lifetimeValue, () =>
         {
@@ -53,10 +58,7 @@ public partial class Plugin
 
         Color color = Color.FromArgb(255, 255, 255, 255);
         if (string.IsNullOrEmpty(colorValue) || colorValue == "rainbow")
-        {
-            color = Utils.rainbowColors[Utils.colorIndex];
-            Utils.colorIndex = (Utils.colorIndex + 1) % Utils.rainbowColors.Length;
-        }
+            color = Utils.GetNextRainbowColor();
         else
         {
             var colorParts = colorValue.Split(' ');
@@ -65,7 +67,7 @@ public partial class Plugin
                 int.TryParse(colorParts[1], out var g) &&
                 int.TryParse(colorParts[2], out var b)
             )
-            color = Color.FromArgb(255, r, g, b);
+                color = Color.FromArgb(255, r, g, b);
         }
 
         if (Utils.VecIsZero(TrailEndOrigin[player.Slot]))
@@ -82,6 +84,8 @@ public partial class Plugin
         beam.Teleport(absOrigin);
         beam.DispatchSpawn();
 
+        TrailsList[beam] = player;
+
         Utils.VecCopy(TrailEndOrigin[player.Slot], beam.EndPos);
         Utils.VecCopy(absOrigin, TrailEndOrigin[player.Slot]);
 
@@ -92,5 +96,22 @@ public partial class Plugin
             if (beam != null && beam.DesignerName == "env_beam")
                 beam.Remove();
         });
+    }
+
+    public void Command_HideTrails(CCSPlayerController? player, CommandInfo info)
+    {
+        if (player == null)
+            return;
+
+        if (HideTrails.Contains(player))
+        {
+            HideTrails.Remove(player);
+            Utils.PrintToChat(player, Localizer["Trails Shown"]);
+        }
+        else
+        {
+            HideTrails.Add(player);
+            Utils.PrintToChat(player, Localizer["Trails Hidden"]);
+        }
     }
 }

@@ -1,18 +1,17 @@
-﻿using Clientprefs.API;
-using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
+using Microsoft.Extensions.Localization;
 using CS2MenuManager.API.Class;
 using CS2MenuManager.API.Interface;
-using Microsoft.Extensions.Localization;
+using CS2MenuManager.API.Enum;
+using Clientprefs.API;
 
 public static partial class Menu
 {
-    static Plugin Instance = Plugin.Instance;
-    static Config Config = Instance.Config;
-    static IStringLocalizer Localizer = Instance.Localizer;
-    static int TrailCookie = Instance.TrailCookie;
-    static Dictionary<CCSPlayerController, string> playerCookies = Instance.playerCookies;
-    static IClientprefsApi? ClientprefsApi = Instance.ClientprefsApi;
+    private static Plugin Instance = Plugin.Instance;
+    private static IStringLocalizer Localizer = Instance.Localizer;
+    private static int TrailCookie = Instance.TrailCookie;
+    private static IClientprefsApi? ClientprefsApi = Instance.ClientprefsApi;
 
     [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
     public static void Open(CCSPlayerController? player, CommandInfo info)
@@ -25,43 +24,55 @@ public static partial class Menu
             return;
         }
 
-        IMenu Menu = MenuManager.MenuByType(Config.MenuType, Localizer["Menu Title"], Instance);
+        IMenu Menu = MenuManager.MenuByType(Instance.Config.MenuType, Localizer["Menu Title"], Instance);
+
+        bool isHidden = Plugin.HideTrails.Contains(player);
+        Menu.AddItem(isHidden ? Localizer["Menu ShowTrails"] : Localizer["Menu HideTrails"], (player, option) =>
+        {
+            if (isHidden)
+            {
+                Plugin.HideTrails.Remove(player);
+                Utils.PrintToChat(player, Localizer["Trails Shown"]);
+            }
+            else
+            {
+                Plugin.HideTrails.Add(player);
+                Utils.PrintToChat(player, Localizer["Trails Hidden"]);
+            }
+
+            Open(player, info);
+        });
 
         Menu.AddItem(Localizer["Menu NoTrail"], (player, option) =>
         {
-            SelectNone(player);
-        });
+            if (ClientprefsApi == null || TrailCookie == -1)
+                return;
 
-        foreach (KeyValuePair<string, Trail> trail in Config.Trails)
+            ClientprefsApi.SetPlayerCookie(player, TrailCookie, "none");
+            Instance.playerCookies[player] = "none";
+
+            Utils.PrintToChat(player, Localizer["Trail Remove"]);
+
+            Open(player, info);
+        }, Instance.playerCookies[player].Equals("none") ? DisableOption.DisableShowNumber : DisableOption.None);
+
+        foreach (KeyValuePair<string, Trail> trail in Instance.Config.Trails)
         {
             Menu.AddItem(trail.Value.Name, (player, option) =>
             {
-                SelectTrail(player, trail);
+                if (ClientprefsApi == null || TrailCookie == -1)
+                    return;
+
+                ClientprefsApi.SetPlayerCookie(player, TrailCookie, trail.Key);
+                Instance.playerCookies[player] = trail.Key;
+
+                Utils.PrintToChat(player, Localizer["Trail Select", trail.Value.Name]);
+
+                Open(player, info);
             });
         }
 
+        Menu.ExitButton = true;
         Menu.Display(player, 0);
-    }
-
-    public static void SelectNone(CCSPlayerController player)
-    {
-        if (ClientprefsApi == null || TrailCookie == -1)
-            return;
-
-        ClientprefsApi.SetPlayerCookie(player, TrailCookie, "none");
-        playerCookies[player] = "none";
-
-        Utils.PrintToChat(player, Localizer["Trail Remove"]);
-    }
-
-    public static void SelectTrail(CCSPlayerController player, KeyValuePair<string, Trail> trail)
-    {
-        if (ClientprefsApi == null || TrailCookie == -1)
-            return;
-
-        ClientprefsApi.SetPlayerCookie(player, TrailCookie, trail.Key);
-        playerCookies[player] = trail.Key;
-
-        Utils.PrintToChat(player, Localizer["Trail Select", trail.Value.Name]);
     }
 }
