@@ -38,8 +38,8 @@
 ## Config
 
 <details>
-<summary>Trails</summary>
-	
+<summary>Trails.json</summary>
+
 ```json
 {
   "Prefix": "{red}[{orange}T{yellow}r{green}a{lightblue}i{darkblue}l{purple}s{red}]",
